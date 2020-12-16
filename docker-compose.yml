@@ -1,0 +1,35 @@
+version: '3.8'
+
+###########MS dockerfiles are made by fabricate
+
+#for each MS maybe in each build section
+#RUN git clone ...
+
+
+services:
+  artemis:
+    image: vromero/activemq-artemis:2.15.0
+#    build:
+#      context: ./<cloned-dir>
+#      dockerfile: <docker within context>
+    ports:
+      - "8161:8161"
+      - "61616:61616"
+    # username
+    # password
+    # ports
+#...
+
+  db-mysql:
+    image: mysql:8
+#    build:
+#      context: ./<cloned-dir>
+#      dockerfile: <docker within context>
+    volumes:
+      - ./mysql-config/data/:/docker-entrypoint-initdb.d      
+    ports:
+      - "3306:3306"  
+    environment:
+      - MYSQL_ROOT_PASSWORD=${ROOT_PASSWORD}
+      
+
