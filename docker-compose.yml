@@ -32,4 +32,9 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${ROOT_PASSWORD}
       
+  zipkin:
+    image: openzipkin/zipkin:2.23
+    ports:
+      - "9411:9411"
+      
 
