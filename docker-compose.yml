@@ -1,30 +1,15 @@
 version: '3.8'
 
-###########MS dockerfiles are made by fabricate
-
-#for each MS maybe in each build section
-#RUN git clone ...
-
-
 services:
   artemis:
     image: vromero/activemq-artemis:2.15.0
-#    build:
-#      context: ./<cloned-dir>
-#      dockerfile: <docker within context>
     ports:
       - "8161:8161"
       - "61616:61616"
-    # username
-    # password
-    # ports
-#...
+
 
   db-mysql:
     image: mysql:8
-#    build:
-#      context: ./<cloned-dir>
-#      dockerfile: <docker within context>
     volumes:
       - ./mysql-config/data/:/docker-entrypoint-initdb.d      
     ports:
@@ -37,4 +22,119 @@ services:
     ports:
       - "9411:9411"
       
+  eureka:
+    image: fabcaz/ms-komb-eureka-service:0.0.1-SNAPSHOT
+    ports:
+      - "8761:8761"
 
+  komb_cloud_config:
+    image: fabcaz/ms-komb-cloud-config-service:0.0.1-SNAPSHOT
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka  
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING-ZIPKIN_BASE-URL: http://zipkin    
+            
+  komb_gateway:
+    image: fabcaz/ms-komb-gateway-service:0.0.1-SNAPSHOT
+    ports:
+      - "9090:9090"
+    depends_on:
+      - eureka
+      - komb_cloud_config
+    environment:
+      SPRING_PROFILES_ACTIVE: serv-discovery
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_ZIPKIN_BASEURL: http://zipkin
+                    
+  komb_brewery:
+    image: fabcaz/ms-komb-brewery-service:0.1.1-SNAPSHOT
+    ports:
+      - "8083:8083"
+    depends_on:
+      - eureka
+      - komb_cloud_config
+      - artemis
+    environment:
+      SPRING_PROFILES_ACTIVE: serv-discovery,remote_mysql
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_ARTEMIS_HOST: artemis
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/kombbrewservice?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      SPRING_ZIPKIN_BASEURL: http://zipkin
+          
+#  komb_brewery_failover:
+#    image: fabcaz/ms-komb-brewery-failover-service:0.0.1-SNAPSHOT
+#    ports:
+#      - "8086:8086"
+#    depends_on:
+#      - eureka
+#      - komb_cloud_config
+#      - artemis
+#    environment:
+#      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+#      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      
+  komb_order:
+    image: fabcaz/ms-komb-order-service:0.1.1-SNAPSHOT
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka
+      - komb_cloud_config
+      - artemis
+    environment:
+      SPRING_PROFILES_ACTIVE: serv-discovery,remote_mysql,test,functionalTest
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_ARTEMIS_HOST: artemis
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/komborderservice?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      SPRING_ZIPKIN_BASEURL: http://zipkin
+      
+#  komb_order_failover:
+#    image: fabcaz/ms-komb-order-failover-service:0.0.1-SNAPSHOT
+#    ports:
+#      - "8085:8085"
+#    depends_on:
+#      - eureka
+#      - komb_cloud_config
+#      - artemis
+#    environment:
+#      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+#      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      
+  komb_inventory:
+    image: fabcaz/ms-komb-inventory-service:0.1.1-SNAPSHOT
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka
+      - komb_cloud_config
+      - artemis
+    environment:
+      SPRING_PROFILES_ACTIVE: serv-discovery,remote_mysql
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      SPRING_ARTEMIS_HOST: artemis
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/kombinventoryservice?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      SPRING_ZIPKIN_BASEURL: http://zipkin
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+         
