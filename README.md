@@ -1,0 +1,1 @@
+Docker containers and sample DB data to integration test projects following along SFG's [Microservices](https://www.udemy.com/course/spring-boot-microservices-with-spring-cloud-beginner-to-guru), [Spring Boot Test](https://www.udemy.com/course/testing-spring-boot-beginner-to-guru/), and [Maven](https://www.udemy.com/course/apache-maven-beginner-to-guru/) courses
